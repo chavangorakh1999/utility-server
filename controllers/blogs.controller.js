@@ -30,7 +30,7 @@ const getBlogs = async (req, res) => {
       const image = $('meta[property="og:image"]').attr("content");
 
       // Return the extracted metadata
-      return { title, description, image };
+      return { title, description, image,url:blog.link };
     })
   );
   response_code.message = "Blogs fetched sucessfully";
