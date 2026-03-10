@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');
 const ResponseCodes = require("./utils/response.code");
 var bodyParser = require('body-parser');
 var cors = require('cors')
@@ -22,6 +23,15 @@ Sharing) and parse incoming request bodies. */
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
+
+// MongoDB connection
+if (process.env.MONGODB_URI) {
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection error:', err));
+} else {
+  console.warn('MONGODB_URI not set — blog CRUD endpoints will fail');
+}
 
 app.use('/api/blogs', require('./routes/blogs.routes'));
 
