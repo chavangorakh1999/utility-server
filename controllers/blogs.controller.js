@@ -20,6 +20,7 @@ const requireKey = (req, res, next) => {
 // ─── GET /api/blogs ───────────────────────────────────────────────────────────
 
 const getBlogs = async (req, res) => {
+
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 }).lean();
     const r = rc();
@@ -37,6 +38,7 @@ const getBlogs = async (req, res) => {
 // ─── GET /api/blogs/:slug ─────────────────────────────────────────────────────
 
 const getBlogBySlug = async (req, res) => {
+
   try {
     const blog = await Blog.findOne({ slug: req.params.slug }).lean();
     if (!blog) {
@@ -59,6 +61,7 @@ const getBlogBySlug = async (req, res) => {
 // ─── POST /api/blogs ──────────────────────────────────────────────────────────
 
 const createBlog = async (req, res) => {
+
   try {
     const { slug, title, date, readTime, image, content } = req.body;
     if (!slug || !title || !content || !date) {
@@ -90,6 +93,7 @@ const createBlog = async (req, res) => {
 // ─── PUT /api/blogs/:slug ─────────────────────────────────────────────────────
 
 const updateBlog = async (req, res) => {
+
   try {
     const { title, date, readTime, image, content } = req.body;
     const blog = await Blog.findOneAndUpdate(
@@ -119,6 +123,7 @@ const updateBlog = async (req, res) => {
 // ─── DELETE /api/blogs/:slug ──────────────────────────────────────────────────
 
 const deleteBlog = async (req, res) => {
+
   try {
     const blog = await Blog.findOneAndDelete({ slug: req.params.slug });
     if (!blog) {
