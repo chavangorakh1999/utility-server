@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const ResponseCodes = require("./utils/response.code");
+const { seedMissing } = require('./scripts/seed-blogs');
 var bodyParser = require('body-parser');
 var cors = require('cors')
 
@@ -45,7 +46,19 @@ const connectDB = () => {
   if (_dbPromise) return _dbPromise;
   if (!process.env.MONGODB_URI) return Promise.reject(new Error('MONGODB_URI not set'));
   _dbPromise = mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 8000 })
-    .then(() => { console.log('MongoDB connected'); })
+    .then(async () => {
+      console.log('MongoDB connected');
+      // Seed on deploy: add any posts from content/blogs that the database doesn't have
+      // yet. Existing posts are never overwritten. Set SEED_BLOGS_ON_START=false to skip.
+      if (process.env.SEED_BLOGS_ON_START !== 'false') {
+        try {
+          const added = await seedMissing(require('./models/Blog.model'));
+          if (added) console.log(`Seeded ${added} blog post(s) from content/blogs`);
+        } catch (err) {
+          console.error('Blog seeding failed:', err.message); // never block the API on this
+        }
+      }
+    })
     .catch((err) => { _dbPromise = null; throw err; });
   return _dbPromise;
 };

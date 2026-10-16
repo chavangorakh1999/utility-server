@@ -42,6 +42,18 @@ const loadPosts = (dir = DIR) =>
   fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort()
     .map((f) => parsePost(fs.readFileSync(path.join(dir, f), 'utf8'), f));
 
+// Inserts posts that aren't in the database yet and never touches existing ones, so
+// edits made through the API survive redeploys. Runs automatically when the server
+// first connects to MongoDB (see index.js); `npm run seed:blogs` is the manual,
+// overwrite-from-files version.
+async function seedMissing(Blog, posts = loadPosts()) {
+  const ops = posts.map((p) => ({
+    updateOne: { filter: { slug: p.slug }, update: { $setOnInsert: p }, upsert: true },
+  }));
+  const result = await Blog.bulkWrite(ops, { ordered: false });
+  return result.upsertedCount ?? 0;
+}
+
 async function main() {
   const posts = loadPosts();
   for (const p of posts) console.log(`${p.date}  ${p.readTime.padEnd(11)}  ${p.slug}`);
@@ -65,4 +77,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parsePost, loadPosts };
+module.exports = { parsePost, loadPosts, seedMissing };
