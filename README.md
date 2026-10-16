@@ -6,7 +6,7 @@ Small Express API behind [grcsr.in](https://grcsr.in). Deployed on Vercel.
 
 | Route | What it does |
 |---|---|
-| `GET /api/blogs` | Medium posts (RSS, with an rss2json fallback) merged with posts stored in MongoDB, newest first. Works without a database. |
+| `GET /api/blogs` | Posts stored in MongoDB, newest first (without the Markdown body). |
 | `GET /api/blogs/:slug` | One stored post, with Markdown `content`. |
 | `POST/PUT/DELETE /api/blogs[/:slug]` | Manage stored posts. Send `X-Api-Key: $BLOG_WRITE_KEY`. |
 | `GET /health` | Liveness check. |
@@ -25,11 +25,10 @@ Markdown files with front matter (`slug`, `title`, `date`, `tags`, `description`
 
 | Variable | Purpose |
 |---|---|
-| `MONGODB_URI` | MongoDB connection string. Optional for `GET /api/blogs`. |
+| `MONGODB_URI` | MongoDB connection string. Required; routes return 503 without it. |
 | `BLOG_WRITE_KEY` | Required header value for write routes. |
 | `CORS_ORIGINS` | Comma-separated allowed origins (e.g. `https://grcsr.in`). |
 | `SITE_BLOG_BASE_URL` | Base URL where stored posts are read, e.g. `https://grcsr.in/blogs`. |
-| `MEDIUM_USER` | Medium handle (default `@grcsr`). |
 | `SEED_BLOGS_ON_START` | `false` disables seeding on deploy. |
 
 ```sh

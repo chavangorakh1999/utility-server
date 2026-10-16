@@ -1,5 +1,5 @@
 // Loads the Markdown posts in content/blogs/ into MongoDB (upsert by slug), so the
-// site's own posts show up in GET /api/blogs alongside Medium.
+// posts show up in GET /api/blogs.
 //
 //   MONGODB_URI="mongodb+srv://..." npm run seed:blogs           # write
 //   npm run seed:blogs -- --dry-run                              # just parse and list

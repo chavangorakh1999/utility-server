@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
 const Blog = require('../models/Blog.model');
 const ResponseCodes = require('../utils/response.code');
-const { getMediumPosts } = require('../services/medium');
 
 const rc = () => new ResponseCodes();
 
@@ -20,10 +18,10 @@ const requireKey = (req, res, next) => {
 };
 
 // ─── GET /api/blogs ───────────────────────────────────────────────────────────
-// Medium posts (from RSS), plus any posts stored in MongoDB when a database is
-// configured. Either source failing doesn't take the other down.
+// Posts stored in MongoDB, newest first, without the Markdown body (fetch one post
+// by slug for that).
 
-const toSitePost = (b) => ({
+const toListItem = (b) => ({
   title: b.title,
   url: process.env.SITE_BLOG_BASE_URL ? `${process.env.SITE_BLOG_BASE_URL.replace(/\/$/, '')}/${b.slug}` : null,
   slug: b.slug,
@@ -36,38 +34,23 @@ const toSitePost = (b) => ({
   source: 'site',
 });
 
-const getBlogs = async (req, res, { connectDB } = {}) => {
-  const [medium, site] = await Promise.allSettled([
-    getMediumPosts(),
-    (async () => {
-      if (!process.env.MONGODB_URI) return [];
-      if (connectDB) await connectDB();
-      if (mongoose.connection.readyState !== 1) return [];
-      return (await Blog.find().select('-content').lean()).map(toSitePost);
-    })(),
-  ]);
-
-  const posts = [
-    ...(medium.status === 'fulfilled' ? medium.value : []),
-    ...(site.status === 'fulfilled' ? site.value : []),
-  ].sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
-
-  if (medium.status === 'rejected') console.error(medium.reason?.message);
-  if (site.status === 'rejected') console.error('MongoDB blogs:', site.reason?.message);
-
-  if (posts.length === 0 && medium.status === 'rejected') {
+const getBlogs = async (req, res) => {
+  try {
+    const posts = (await Blog.find().select('-content').lean())
+      .map(toListItem)
+      .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+    // Short edge cache: new posts show up within a few minutes.
+    res.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
     const r = rc();
-    r.message = 'Could not load blogs right now';
-    r.error = { medium: medium.reason?.message };
-    return res.status(502).send(r.serverError());
+    r.message = 'Blogs fetched successfully';
+    r.data = posts;
+    return res.status(200).send(r.success());
+  } catch (error) {
+    const r = rc();
+    r.message = 'Something went wrong';
+    r.error = error;
+    return res.status(500).send(r.serverError());
   }
-
-  // Let Vercel's edge cache the list; Medium only changes when a post is published.
-  res.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  const r = rc();
-  r.message = 'Blogs fetched successfully';
-  r.data = posts;
-  return res.status(200).send(r.success());
 };
 
 // ─── GET /api/blogs/:slug ─────────────────────────────────────────────────────

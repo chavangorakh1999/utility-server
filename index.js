@@ -76,9 +76,6 @@ const ensureDB = async (req, res, next) => {
   }
 };
 
-// GET /api/blogs works without a database (Medium RSS); the rest need MongoDB.
-const { getBlogs } = require('./controllers/blogs.controller');
-app.get('/api/blogs', (req, res) => getBlogs(req, res, { connectDB }));
 app.use('/api/blogs', ensureDB, require('./routes/blogs.routes'));
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));

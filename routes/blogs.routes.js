@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-
+  getBlogs,
   getBlogBySlug,
   createBlog,
   updateBlog,
@@ -9,6 +9,7 @@ const {
   requireKey,
 } = require('../controllers/blogs.controller');
 
+router.get('/',         getBlogs);
 router.get('/:slug',    getBlogBySlug);
 router.post('/',        requireKey, createBlog);
 router.put('/:slug',    requireKey, updateBlog);
