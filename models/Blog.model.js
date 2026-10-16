@@ -7,7 +7,9 @@ const BlogSchema = new mongoose.Schema(
     date:     { type: String, required: true },
     readTime: { type: String, default: '5 min read' },
     image:    { type: String, default: null },
-    content:  { type: String, required: true },
+    content:  { type: String, required: true },  // Markdown
+    description: { type: String, default: null },
+    tags:     { type: [String], default: [] },
   },
   { timestamps: true }
 );

@@ -63,7 +63,12 @@ const ensureDB = async (req, res, next) => {
   }
 };
 
+// GET /api/blogs works without a database (Medium RSS); the rest need MongoDB.
+const { getBlogs } = require('./controllers/blogs.controller');
+app.get('/api/blogs', (req, res) => getBlogs(req, res, { connectDB }));
 app.use('/api/blogs', ensureDB, require('./routes/blogs.routes'));
+
+app.get('/health', (req, res) => res.send({ status: 'ok' }));
 
 
 /* This piece of code is a middleware function in Express that handles errors. When an error occurs in
@@ -80,4 +85,8 @@ app.use((err, req, res, next) => {
 
 /* This piece of code is setting up the port for the Express server to listen on. */
 const PORT = process.env.PORT ?? 3000;
-app.listen(process.env.PORT ?? 3000, () => console.log(`Listening on port ${PORT}...`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Listening on port ${PORT}...`));
+}
+
+module.exports = app;

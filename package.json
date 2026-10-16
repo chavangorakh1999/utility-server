@@ -4,7 +4,10 @@
   "description": "Express application generated with create-express-app-js",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "node --test test/*.test.js",
+    "dev": "node --watch index.js",
+    "seed:blogs": "node scripts/seed-blogs.js"
   },
   "keywords": [
     "express",
@@ -25,5 +28,8 @@
     "path": "^0.12.7",
     "rss-parser": "^3.13.0",
     "swagger-ui-express": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
